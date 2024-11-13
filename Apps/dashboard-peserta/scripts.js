@@ -34,4 +34,18 @@ $(document).ready(function () {
 
   // Jalankan cek status
   checkUjianStatus();
+
+  function selesaiUjian() {
+    $.ajax({
+      url: "../penilaian/kalkulasi.php",
+      type: "POST",
+      data: {
+        id_peserta: id_peserta,
+        jawaban: jawaban,
+      },
+      success: function (response) {
+        window.location.href = "../dashboard-peserta/index.php";
+      },
+    });
+  }
 });

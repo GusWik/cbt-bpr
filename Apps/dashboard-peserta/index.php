@@ -4,18 +4,40 @@ require_once '../../config/db_cbt_v1.php';
 ?>
 <?php include '../docker/header.php' ?>
 
+
 <body>
     <script src="../../assets/static/js/initTheme.js"></script>
     <div id="app">
 
         <div id="main" style="margin-left: 0; width: 100%;">
-            <header class="mb-3">
-                <a href="#" class="burger-btn d-block d-xl-none">
-                    <i class="bi bi-justify fs-3"></i>
-                </a>
-
+            <header>
+                <nav class="navbar navbar-expand navbar-light navbar-top">
+                    <div class="container-fluid">
+                        <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                            <ul class="navbar-nav ms-auto mb-lg-0">
+                                <li class="nav-item">
+                                    <a href="index.php" class="nav-link">
+                                        <i class="bi bi-grid-fill"></i> Dashboard
+                                    </a>
+                                </li>
+                                <li class="nav-item">
+                                    <a href="../penilaian" class="nav-link">
+                                        <i class="bi bi-clock-history"></i> Riwayat Ujian
+                                    </a>
+                                </li>
+                                <li class="nav-item dropdown me-3">
+                                    <a class="nav-link active dropdown-toggle text-gray-600" href="#" data-bs-toggle="dropdown" data-bs-display="static" aria-expanded="false">
+                                        <i class="bi bi-person-fill"></i> <?php echo $_SESSION['nama']; ?>
+                                    </a>
+                                    <ul class="dropdown-menu dropdown-menu-end">
+                                        <li><a class="dropdown-item" href="../login/logout.php"><i class="bi bi-box-arrow-right"></i> Logout</a></li>
+                                    </ul>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </nav>
             </header>
-
             <div class="page-heading">
                 <h3>Dashboard Peserta Ujian</h3>
             </div>
@@ -23,11 +45,6 @@ require_once '../../config/db_cbt_v1.php';
                 <a href="#" class="burger-btn d-block d-xl-none">
                     <i class="bi bi-justify fs-3"></i>
                 </a>
-                <div>
-                    <a href="../login/logout.php" class="btn btn-danger">
-                        <i class="bi bi-box-arrow-right"></i> Logout
-                    </a>
-                </div>
             </div>
             <br>
             <div class="page-content">
@@ -111,6 +128,8 @@ require_once '../../config/db_cbt_v1.php';
                         echo '<div class="col-12"><div class="alert alert-info">Anda belum terdaftar sebagai peserta ujian.</div></div>';
                     }
                     ?>
+
+                    
                 </section>
             </div>
             <?php include '../docker/footer.php' ?>
