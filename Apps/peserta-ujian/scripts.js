@@ -179,4 +179,28 @@ $(document).ready(function () {
     dropdownAutoWidth: true,
     dropdownParent: $("#select-cabang").parent(),
   });
+
+  function loadPegawaiData(kodeCabang) {
+    // Tampilkan loading spinner
+    $("#table-pegawai tbody").html(
+      '<tr><td colspan="5" class="text-center"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></td></tr>'
+    );
+
+    setTimeout(function () {
+      $.ajax({
+        url: "get_pegawai.php",
+        type: "POST",
+        data: { kode_kantor: kodeCabang },
+        success: function (response) {
+          if ($.fn.DataTable.isDataTable("#table-pegawai")) {
+            $("#table-pegawai").DataTable().destroy();
+          }
+          $("#table-pegawai tbody").html(response);
+          $("#table-pegawai").DataTable({
+            order: [[2, "asc"]],
+          });
+        },
+      });
+    }, 1000); // Delay 1 detik
+  }
 });

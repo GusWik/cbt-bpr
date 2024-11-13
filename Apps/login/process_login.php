@@ -33,7 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             if ($user['role'] === 'admin') {
                 $_SESSION['redirect_url'] = "../";
             } else {
-                $_SESSION['redirect_url'] = "../test/test.php";
+                $_SESSION['redirect_url'] = "../dashboard-peserta/index.php";
             }
         } else {
             // Password salah

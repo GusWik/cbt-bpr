@@ -32,29 +32,30 @@ include '../docker/header.php';
                                 <h4 class="card-title">Pilih Kantor Cabang</h4>
                             </div>
                             <div class="card-body">
-                                <div class="form-group">
-                                    <select class="form-select" id="select-cabang" size="5">
-                                        <option value="">-- Pilih Kantor --</option>
-                                        <?php
-                                        $query_cabang = "SELECT DISTINCT k.kode_kantor, k.nama_kantor 
-                FROM t_kantor k 
-                INNER JOIN t_pegawai p ON k.kode_kantor = p.kode_kantor 
-                ORDER BY k.kode_kantor ASC";
-                                        $result_cabang = $conn->query($query_cabang);
-                                        while ($cabang = $result_cabang->fetch_assoc()):
-                                        ?>
-                                            <option value="<?php echo $cabang['kode_kantor']; ?>">
-                                                <?php echo $cabang['nama_kantor']; ?>
-                                            </option>
-                                        <?php endwhile; ?>
-                                    </select>
-                                </div>
-                                <div class="mt-3">
-                                    <button id="tampilkanPegawai" class="btn btn-primary">Tampilkan Pegawai</button>
+                                <div class="row align-items-center">
+                                    <div class="col-md-8">
+                                        <select class="form-select" id="select-cabang">
+                                            <option value="">-- Pilih Kantor --</option>
+                                            <?php
+                                            $query_cabang = "SELECT DISTINCT k.kode_kantor, k.nama_kantor 
+                    FROM t_kantor k 
+                    INNER JOIN t_pegawai p ON k.kode_kantor = p.kode_kantor 
+                    ORDER BY k.kode_kantor ASC";
+                                            $result_cabang = $conn->query($query_cabang);
+                                            while ($cabang = $result_cabang->fetch_assoc()):
+                                            ?>
+                                                <option value="<?php echo $cabang['kode_kantor']; ?>">
+                                                    <?php echo $cabang['nama_kantor']; ?>
+                                                </option>
+                                            <?php endwhile; ?>
+                                        </select>
+                                    </div>
+                                    <div class="col-md-4">
+                                        <button id="tampilkanPegawai" class="btn btn-primary w-100">Tampilkan Pegawai</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </section>
 
@@ -67,6 +68,14 @@ include '../docker/header.php';
                                 <button id="tambahPeserta" class="btn btn-primary">Tambah ke Peserta Ujian</button>
                             </div>
                             <div class="card-body">
+                                <!-- Loading spinner ditaruh disini -->
+                                <div id="loading-spinner" style="display:none;">
+                                    <div class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </div>
+                                </div>
                                 <div class="table-responsive">
                                     <table class="table" id="table-pegawai">
                                         <thead>
@@ -105,7 +114,6 @@ include '../docker/header.php';
                                         <tbody>
                                         </tbody>
                                     </table>
-
                                 </div>
                             </div>
                         </div>
@@ -179,4 +187,17 @@ include '../docker/header.php';
 
     <!-- JS untuk interaksi -->
     <script src="./scripts.js"></script>
+    <style>
+        #table-pegawai thead th {
+            background-color: #198754;
+            /* Bootstrap green */
+            color: white;
+        }
+
+        #table-peserta thead th {
+            background-color: #dc3545;
+            /* Bootstrap red */
+            color: white;
+        }
+    </style>
 </body>
