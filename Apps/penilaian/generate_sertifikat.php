@@ -3,77 +3,124 @@ session_start();
 require_once '../../config/db_cbt_v1.php';
 require_once '../../vendor/autoload.php';
 
-// Kode query database tetap sama seperti sebelumnya
+$id_peserta = isset($_GET['id_peserta']) ? $_GET['id_peserta'] : null;
 
-// Inisialisasi TCPDF dengan orientasi landscape
-$pdf = new TCPDF('L', 'mm', 'A4', true, 'UTF-8', false);
+if (!$id_peserta) {
+    die("ID Peserta tidak valid");
+}
 
-// Set document information
-$pdf->SetCreator('PT BPR NTB PERSERODA');
-$pdf->SetAuthor('PT BPR NTB PERSERODA');
-$pdf->SetTitle('Sertifikat CBT - ' . $data['nm_pegawai']);
+// Get report data
+$query = "SELECT 
+            pu.id_peserta,
+            pu.tgl_ujian,
+            pu.jml_soal,
+            pu.total_nilai_ujian,
+            p.nm_pegawai,
+            bs.nm_bidang_soal
+          FROM t_peserta_ujian pu
+          JOIN t_pegawai p ON pu.kd_pegawai = p.kd_pegawai
+          JOIN t_bidang_soal bs ON pu.id_bidang_soal = bs.id_bidang_soal
+          WHERE pu.id_peserta = ?";
 
-// Remove default header/footer
+$stmt = $conn->prepare($query);
+if ($stmt === false) {
+    die("Error preparing query: " . $conn->error);
+}
+
+$stmt->bind_param("i", $id_peserta);
+$stmt->execute();
+$result = $stmt->get_result();
+$data = $result->fetch_assoc();
+
+// Query untuk mengambil detail jawaban salah
+$query_salah = "SELECT DISTINCT bs.nm_bidang_soal
+                FROM t_hasil_ujian hu
+                JOIN t_bank_soal bs ON hu.id_soal = bs.id_soal
+                WHERE hu.id_peserta = ? AND hu.nilai_per_soal = 0";
+
+$stmt_salah = $conn->prepare($query_salah);
+if ($stmt_salah) {
+    $stmt_salah->bind_param("i", $id_peserta);
+    $stmt_salah->execute();
+    $result_salah = $stmt_salah->get_result();
+} else {
+    $result_salah = false;
+}
+
+ob_clean();
+
+// Create PDF
+$pdf = new TCPDF('P', 'mm', 'A4', true, 'UTF-8', false);
+$pdf->SetCreator('PT BPR NTB');
+$pdf->SetAuthor('PT BPR NTB');
+$pdf->SetTitle('Hasil Ujian CBT - ' . $data['nm_pegawai']);
+
 $pdf->setPrintHeader(false);
 $pdf->setPrintFooter(false);
-
-// Add page
+$pdf->SetMargins(15, 15, 15);
 $pdf->AddPage();
 
-// Set background
-$pdf->Image('../../assets/static/images/sertifikat/background.jpg', 0, 0, 297, 210, '', '', '', false, 300);
-
-// Add logo
-$pdf->Image('../../assets/static/images/sertifikat/logo.png', 125, 20, 50, '', '', '', '', false, 300);
-
-// Set font dan konten
+// Content
 $html = '
 <style>
-    .sertifikat {
-        text-align: center; 
-        line-height: 1.6;
-        padding: 40px;
-    }
-    .header {
-        font-size: 28pt; 
-        font-weight: bold; 
-        color: #1B3C73;
-        margin-top: 40px;
-    }
-    .nama {
-        font-size: 24pt;
-        font-weight: bold;
-        color: #1B3C73;
-        padding: 10px 30px;
-    }
-    .content {
-        font-size: 14pt;
-        margin: 20px 0;
-    }
-    .footer {
-        font-size: 12pt;
-        margin-top: 40px;
-    }
+    .header {text-align: center; font-size: 16pt; font-weight: bold; margin-bottom: 20px;}
+    .table {width: 100%; border-collapse: collapse; margin-top: 20px;}
+    .table th, .table td {border: 1px solid #000; padding: 8px;}
+    .table th {background-color: #f0f0f0;}
+    .status-lulus {color: green; font-weight: bold;}
+    .status-gagal {color: red; font-weight: bold;}
+    .catatan {margin-top: 30px; border: 1px solid #ddd; padding: 15px; background-color: #f9f9f9;}
+    .catatan-header {font-size: 14pt; font-weight: bold; color: #333; margin-bottom: 10px;}
+    .rekomendasi {margin-top: 10px; padding-left: 20px;}
 </style>
 
-<div class="sertifikat">
-    <div class="header">SERTIFIKAT<br>COMPUTER BASED TEST</div>
-    <div class="content">
-        Diberikan kepada:<br>
-        <div class="nama">' . $data['nm_pegawai'] . '</div>
-        ' . $data['jabatan_pegawai'] . '<br>
-        ' . $data['nama_kantor'] . '<br><br>
-        Telah menyelesaikan ujian CBT bidang:<br>
-        <b>' . $data['nm_bidang_soal'] . '</b><br>
-        dengan nilai: <b>' . $data['total_nilai_ujian'] . '</b>
-    </div>
-    <div class="footer">
-        Mataram, ' . date('d F Y', strtotime($data['tgl_terbit'])) . '<br>
-        PT BPR NTB PERSERODA<br><br><br><br>
-        <u>Direktur Utama</u><br>
-        NIP. ........................
-    </div>
-</div>';
+<div class="header">HASIL UJIAN CBT<br>PT BPR NTB PERSERODA</div>
+
+<table class="table">
+    <tr>
+        <th>No</th>
+        <th>Tanggal Ujian</th>
+        <th>Nama Peserta</th>
+        <th>Bidang Soal</th>
+        <th>Jumlah Soal</th>
+        <th>Nilai</th>
+        <th>Status</th>
+    </tr>
+    <tr>
+        <td>1</td>
+        <td>' . date('d-m-Y', strtotime($data['tgl_ujian'])) . '</td>
+        <td>' . $data['nm_pegawai'] . '</td>
+        <td>' . $data['nm_bidang_soal'] . '</td>
+        <td>' . $data['jml_soal'] . '</td>
+        <td>' . $data['total_nilai_ujian'] . '</td>
+        <td>' . ($data['total_nilai_ujian'] >= 65 ?
+    '<span class="status-lulus">Lulus</span>' :
+    '<span class="status-gagal">Tidak Lulus</span>') . '</td>
+    </tr>
+</table>';
+
+// Tampilkan catatan pengembangan hanya jika tidak lulus
+if ($data['total_nilai_ujian'] < 65) {
+    $html .= '<div class="catatan">
+        <div class="catatan-header">Catatan Pengembangan:</div>
+        <p></p>
+        <div class="rekomendasi">';
+
+    if ($result_salah && $result_salah->num_rows > 0) {
+        while ($bidang = $result_salah->fetch_assoc()) {
+            $html .= '<p>• Materi <b>' . $bidang['nm_bidang_soal'] . '</b>: ' .
+                'Perlu pendalaman materi dan pemahaman lebih lanjut terkait dengan Materi yang diujikan, Tetap Semangat Semoga Berhasil dikemudian Hari.</p>';
+        }
+    } else {
+        $html .= '<p>Perlu pendalaman materi dan pemahaman lebih lanjut terkait dengan Materi yang diujikan, Tetap Semangat Semoga Berhasil dikemudian Hari.</p>';
+    }
+
+    $html .= '</div>
+        <p style="margin-top: 15px;"><i></i></p>
+    </div>';
+}
+
+
 
 $pdf->writeHTML($html, true, false, true, false, '');
-$pdf->Output('Sertifikat_' . $data['no_sertifikat'] . '.pdf', 'D');
+$pdf->Output('Hasil_Ujian_CBT_' . $data['nm_pegawai'] . '.pdf', 'D');

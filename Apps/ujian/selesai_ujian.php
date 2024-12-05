@@ -3,26 +3,50 @@ session_start();
 require_once '../../config/db_cbt_v1.php';
 
 $kd_pegawai = $_SESSION['username'];
+$answers = $_POST['answers'];
 
-// Calculate total nilai
-$query_nilai = "SELECT SUM(hu.nilai_per_soal) as total_nilai
-                FROM t_peserta_ujian pu
-                JOIN t_hasil_ujian hu ON pu.id_peserta = hu.id_peserta
-                WHERE pu.kd_pegawai = ? AND pu.flag_aktif = 1";
-
-$stmt = $conn->prepare($query_nilai);
+// Get active exam data
+$query = "SELECT id_peserta FROM t_peserta_ujian 
+          WHERE kd_pegawai = ? AND flag_aktif = 1";
+$stmt = $conn->prepare($query);
 $stmt->bind_param("s", $kd_pegawai);
 $stmt->execute();
 $result = $stmt->get_result();
-$nilai = $result->fetch_assoc();
+$peserta = $result->fetch_assoc();
 
-// Update total nilai in peserta_ujian
-$query_update = "UPDATE t_peserta_ujian 
-                 SET total_nilai_ujian = ?
-                 WHERE kd_pegawai = ? AND flag_aktif = 1";
+if ($peserta) {
+    foreach ($answers as $id_soal => $jawaban) {
+        // Get correct answer
+        $query_jawaban = "SELECT jawaban_benar FROM t_bank_soal WHERE id_soal = ?";
+        $stmt = $conn->prepare($query_jawaban);
+        $stmt->bind_param("i", $id_soal);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $soal = $result->fetch_assoc();
 
-$stmt_update = $conn->prepare($query_update);
-$stmt_update->bind_param("is", $nilai['total_nilai'], $kd_pegawai);
-$stmt_update->execute();
+        // Calculate nilai
+        $nilai_per_soal = ($jawaban == $soal['jawaban_benar']) ? 1 : 0;
+
+        // Insert into t_hasil_ujian
+        $query_insert = "INSERT INTO t_hasil_ujian 
+                        (tgl_ujian, id_peserta, id_soal, jawaban_dipilih, nilai_per_soal) 
+                        VALUES (CURDATE(), ?, ?, ?, ?)";
+        $stmt = $conn->prepare($query_insert);
+        $stmt->bind_param(
+            "iisi",
+            $peserta['id_peserta'],
+            $id_soal,
+            $jawaban,
+            $nilai_per_soal
+        );
+        $stmt->execute();
+    }
+
+    // Update exam status
+    $query_update = "UPDATE t_peserta_ujian SET flag_aktif = 0 WHERE id_peserta = ?";
+    $stmt = $conn->prepare($query_update);
+    $stmt->bind_param("i", $peserta['id_peserta']);
+    $stmt->execute();
+}
 
 echo json_encode(['success' => true]);
