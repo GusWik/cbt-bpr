@@ -2,7 +2,6 @@
 session_start();
 require_once '../../config/db_cbt_v1.php';
 
-// Validasi session
 if (!isset($_SESSION['username'])) {
     echo json_encode(['status' => 'error', 'message' => 'Session tidak valid']);
     exit;
@@ -11,17 +10,26 @@ if (!isset($_SESSION['username'])) {
 $kd_pegawai = $_SESSION['username'];
 $nomor_soal = isset($_POST['nomor']) ? (int)$_POST['nomor'] : 1;
 
-// Query untuk mengambil soal berdasarkan nomor
-$query = "SELECT * FROM t_bank_soal 
-          WHERE id_soal NOT IN (
-              SELECT id_soal 
-              FROM t_hasil_ujian 
-              WHERE id_peserta = {$_SESSION['id_peserta']}
-          )
-          ORDER BY RAND() 
-          LIMIT 1 OFFSET " . ($nomor_soal - 1);
+// Jika belum ada daftar soal di session, generate dan simpan
+if (!isset($_SESSION['soal_ids'])) {
+    $query = "SELECT id_soal FROM t_bank_soal ORDER BY RAND()";
+    $result = $conn->query($query);
+    $soal_ids = [];
+    while ($row = $result->fetch_assoc()) {
+        $soal_ids[] = $row['id_soal'];
+    }
+    $_SESSION['soal_ids'] = $soal_ids;
+}
 
-$result = $conn->query($query);
+// Ambil id soal dari daftar yang sudah diacak
+$id_soal = $_SESSION['soal_ids'][$nomor_soal - 1];
+
+// Query untuk mengambil detail soal
+$query = "SELECT * FROM t_bank_soal WHERE id_soal = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param('i', $id_soal);
+$stmt->execute();
+$result = $stmt->get_result();
 
 if ($result && $result->num_rows > 0) {
     $soal = $result->fetch_assoc();

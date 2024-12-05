@@ -79,43 +79,27 @@ $_SESSION['id_peserta'] = $peserta['id_peserta'];
                             </div>
                             <div class="card-body">
                                 <form id="formJawaban">
-                                    <input type="hidden" id="current_soal_id" value="<?php echo $soal['id_soal']; ?>">
+                                    <input type="hidden" id="current_soal_id">
                                     <div id="konten-soal">
-                                        <?php
-                                        // Query untuk mengambil soal secara acak
-                                        $query_soal = "SELECT * FROM t_bank_soal ORDER BY RAND() LIMIT 1";
-                                        $result_soal = $conn->query($query_soal);
-
-                                        if ($result_soal && $result_soal->num_rows > 0) {
-                                            $soal = $result_soal->fetch_assoc();
-                                        ?>
-                                            <div class="pertanyaan mb-4">
-                                                <?php echo $soal['pertanyaan']; ?>
+                                        <div class="pertanyaan mb-4"></div>
+                                        <div class="pilihan-jawaban">
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="radio" name="jawaban" id="pilihan_a" value="a">
+                                                <label class="form-check-label" for="pilihan_a" id="label_a"></label>
                                             </div>
-
-                                            <div class="pilihan-jawaban" data-soal-id="<?php echo $soal['id_soal']; ?>">
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="jawaban" value="a">
-                                                    <label class="form-check-label"><?php echo $soal['pilihan_a']; ?></label>
-                                                </div>
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="jawaban" value="b">
-                                                    <label class="form-check-label"><?php echo $soal['pilihan_b']; ?></label>
-                                                </div>
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="jawaban" value="c">
-                                                    <label class="form-check-label"><?php echo $soal['pilihan_c']; ?></label>
-                                                </div>
-                                                <div class="form-check mb-3">
-                                                    <input class="form-check-input" type="radio" name="jawaban" value="d">
-                                                    <label class="form-check-label"><?php echo $soal['pilihan_d']; ?></label>
-                                                </div>
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="radio" name="jawaban" id="pilihan_b" value="b">
+                                                <label class="form-check-label" for="pilihan_b" id="label_b"></label>
                                             </div>
-                                        <?php
-                                        } else {
-                                            echo "Tidak ada soal tersedia.";
-                                        }
-                                        ?>
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="radio" name="jawaban" id="pilihan_c" value="c">
+                                                <label class="form-check-label" for="pilihan_c" id="label_c"></label>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="radio" name="jawaban" id="pilihan_d" value="d">
+                                                <label class="form-check-label" for="pilihan_d" id="label_d"></label>
+                                            </div>
+                                        </div>
                                     </div>
                                     <div class="d-flex justify-content-between mt-4">
                                         <button type="button" class="btn btn-secondary" id="prevSoal">
@@ -129,6 +113,7 @@ $_SESSION['id_peserta'] = $peserta['id_peserta'];
                             </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
