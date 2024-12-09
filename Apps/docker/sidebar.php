@@ -64,17 +64,10 @@ function isActive($page)
                     </a>
                 </li>
 
-                <li class="sidebar-item ">
-                    <a href="#" class='sidebar-link'>
+                <li class="sidebar-item <?php echo isActive('laporan.php'); ?>">
+                    <a href="/cbt-bpr/Apps/report/laporan.php" class='sidebar-link'>
                         <i class="bi bi-stack"></i>
-                        <span>Nilai</span>
-                    </a>
-                </li>
-
-                <li class="sidebar-item  ">
-                    <a href="#" class='sidebar-link'>
-                        <i class="bi bi-collection-fill"></i>
-                        <span>Log Jawaban</span>
+                        <span>Hasil Ujian</span>
                     </a>
                 </li>
 
